@@ -1,0 +1,9 @@
+gtts
+jiwer
+pandas
+seaborn
+matplotlib
+requests
+soundfile
+pydub
+numpy
