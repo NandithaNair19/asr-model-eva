@@ -157,10 +157,10 @@ cp .env.example .env
 ```
 
 Open `.env` and set your server IP:
+```
 ASR_ENDPOINT=http://<your-server>:5000/v2/models/asr_am_ensemble/infer
-
 USE_MOCK=false
-
+```
 
 **Step 6 — Run the evaluation:**
 ```bash
