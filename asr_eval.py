@@ -45,11 +45,10 @@ def mock_asr(audio_path, reference_text):
     return " ".join(words)
 
 #  Real ASR 
-def real_asr(audio_path, language_code, service_id):
+def real_asr(audio_path, language_code):
     import requests
     print(f"     Calling real ASR endpoint for {audio_path}...")
     
-    # rest of the function...
     
     # Convert mp3 to wav and load as float array
     audio = AudioSegment.from_mp3(audio_path)
@@ -118,8 +117,7 @@ def run_evaluation():
             else:
                 hyp_text = real_asr(
                     audio_path,
-                    LANGUAGES[lang]["code"],
-                    LANGUAGES[lang]["service_id"]
+                    LANGUAGES[lang]["code"]
                 )
 
             references.append(ref_text)
