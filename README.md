@@ -123,8 +123,8 @@ sudo apt install ffmpeg -y
 
 **Step 1 — Clone the repo:**
 ```bash
-git clone https://github.com/yourusername/indic-asr-eval.git
-cd indic-asr-eval
+git clone https://github.com/NandithaNair19/asr-model-eva
+cd asr-model-eva
 ```
 
 **Step 2 — Create a virtual environment:**
