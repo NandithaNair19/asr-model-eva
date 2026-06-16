@@ -38,3 +38,14 @@ jobs:
         env:
           USE_MOCK: "true"
         run: python3 asr_eval.py
+
+      - name: Validate real_asr function signature
+        run: |
+          python3 -c "
+          from asr_eval import real_asr
+          import inspect
+          sig = inspect.signature(real_asr)
+          params = list(sig.parameters.keys())
+          assert params == ['audio_path', 'language_code'], f'Unexpected params: {params}'
+          print('real_asr signature is correct')
+          "

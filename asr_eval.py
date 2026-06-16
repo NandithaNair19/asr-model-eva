@@ -45,6 +45,7 @@ def mock_asr(audio_path, reference_text):
     return " ".join(words)
 
 #  Real ASR 
+# NOTE: real_asr() is not tested in CI as it requires access to a private inference server. Test manually by setting USE_MOCK=false in .env and running: python3 asr_eval.py
 def real_asr(audio_path, language_code):
     import requests
     print(f"     Calling real ASR endpoint for {audio_path}...")
@@ -122,7 +123,7 @@ def run_evaluation():
 
             references.append(ref_text)
             hypotheses.append(hyp_text)
-            print(f"    ✓ Sentence {sentence['id']}")
+            print(f"      Sentence {sentence['id']}")
             print(f"      REF: {ref_text}")
             print(f"      HYP: {hyp_text}")
 
