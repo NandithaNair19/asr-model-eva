@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 from jiwer import wer, cer
 
 # Config
-ASR_ENDPOINT = "http://<your server>/v2/models/asr_am_ensemble/infer"
-USE_MOCK = False  
+ASR_ENDPOINT = os.getenv("ASR_ENDPOINT", "http://<your-server>/v2/models/asr_am_ensemble/infer")
+USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"  
 
 LANGUAGES = {
     "hindi":     {"code": "hi", "service_id": "ai4bharat/asr-wav2vec2-hindi"},
@@ -85,7 +85,7 @@ def real_asr(audio_path, language_code, service_id):
     }
     
     response = requests.post(
-        "http://13.200.133.97:5000/v2/models/asr_am_ensemble/infer",
+        ASR_ENDPOINT,  
         json=payload,
         headers={"Content-Type": "application/json"}
     )

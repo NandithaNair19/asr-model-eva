@@ -151,11 +151,16 @@ This creates 70 MP3 files in the `audio/` folder (10 sentences × 7 languages).
 
 **Step 5 — Configure the ASR endpoint:**
 
-Open `asr_eval.py` and update:
-```python
-ASR_ENDPOINT = "http://<your-server-ip>:5000/v2/models/asr_am_ensemble/infer"
-USE_MOCK = False  # Set to True if you don't have endpoint access
+Copy the example env file:
+```bash
+cp .env.example .env
 ```
+
+Open `.env` and set your server IP:
+ASR_ENDPOINT=http://<your-server-ip>:5000/v2/models/asr_am_ensemble/infer
+
+USE_MOCK=false
+
 
 **Step 6 — Run the evaluation:**
 ```bash
