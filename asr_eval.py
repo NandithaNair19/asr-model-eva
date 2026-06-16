@@ -16,15 +16,14 @@ ASR_ENDPOINT = os.getenv("ASR_ENDPOINT", "http://<your-server>/v2/models/asr_am_
 USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"  
 
 LANGUAGES = {
-    "hindi":     {"code": "hi", "service_id": "ai4bharat/asr-wav2vec2-hindi"},
-    "tamil":     {"code": "ta", "service_id": "ai4bharat/asr-wav2vec2-tamil"},
-    "telugu":    {"code": "te", "service_id": "ai4bharat/asr-wav2vec2-telugu"},
-    "marathi":   {"code": "mr", "service_id": "ai4bharat/asr-wav2vec2-marathi"},
-    "malayalam": {"code": "ml", "service_id": "ai4bharat/asr-wav2vec2-malayalam"},
-    "gujarati":  {"code": "gu", "service_id": "ai4bharat/asr-wav2vec2-gujarati"},
-    "kannada":   {"code": "kn", "service_id": "ai4bharat/asr-wav2vec2-kannada"},
+    "hindi":     {"code": "hi"},
+    "tamil":     {"code": "ta"},
+    "telugu":    {"code": "te"},
+    "marathi":   {"code": "mr"},
+    "malayalam": {"code": "ml"},
+    "gujarati":  {"code": "gu"},
+    "kannada":   {"code": "kn"},
 }
-
 UNSUPPORTED = ["assamese", "garo", "khasi"]
 
 #  Mock ASR 
