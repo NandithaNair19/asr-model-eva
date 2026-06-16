@@ -30,3 +30,11 @@ jobs:
       - name: Check Python files
         run: |
           python -m py_compile asr_eval.py generate_audio.py
+      
+      - name: Generate audio files
+        run: python3 generate_audio.py
+
+      - name: Run evaluation in mock mode
+        env:
+          USE_MOCK: "true"
+        run: python3 asr_eval.py
