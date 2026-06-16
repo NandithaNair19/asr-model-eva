@@ -2,7 +2,7 @@ from gtts import gTTS
 import json
 import os
 
-with open("references.json", "r", encoding="utf-8") as f:
+with open("references/references.json", "r", encoding="utf-8") as f:
     data = json.load(f)
 
 languages = {
