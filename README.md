@@ -252,7 +252,39 @@ pip install -r requirements.txt
 This is expected if no errors were randomly introduced. Run again — mock mode uses random error rates so results vary each run.
 
 ---
+## End-to-End Testing
 
+An end-to-end test script is included that runs the full pipeline from scratch — cloning the repo, setting up the environment, generating audio, and running both mock and real ASR evaluation.
+
+> **Note:** The script clones the repo to `~/Downloads/cross-lingual-asr-eval` by default. If you want to change the location, update these two lines in `test_e2e.sh`:
+> ```bash
+> run "git clone https://github.com/NandithaNair19/asr-model-eva.git ~/<your-folder>/<your-name>"
+> cd ~/<your-folder>/<your-name>
+> log "$ cd ~/<your-folder>/<your-name>"
+> ```
+
+### Run the test
+
+```bash
+chmod +x test_e2e.sh
+./test_e2e.sh
+```
+
+The script will:
+1. Clone the repo fresh
+2. Set up Python 3.11 virtual environment
+3. Install all dependencies
+4. Generate audio files
+5. Run evaluation in **mock mode**
+6. Prompt you for the ASR endpoint IP to run in **real mode**
+   - Press **Enter** to skip real mode if you don't have endpoint access
+7. Check and display output files
+
+### Output
+
+All commands and their outputs are logged to `e2e_test_log.txt` in plaintext. This file documents the full run  of a successful end-to-end test.
+
+---
 ## Cost Breakdown
 
 | Resource | Cost |
@@ -270,14 +302,25 @@ This is expected if no errors were randomly introduced. Run again — mock mode 
 
 ### Language Coverage
 
-This tool currently supports 7 Indic languages for audio generation using [gTTS (Google Text-to-Speech)](https://gtts.readthedocs.io/). 
+This tool currently supports 7 Indic languages for audio generation using [gTTS (Google Text-to-Speech)](https://gtts.readthedocs.io/).
 
 For languages like Garo, Khasi, Bodo, Mizo, and Tulu — gTTS does not provide support. However, the AI4I platform itself has TTS capabilities for a wider range of Indic languages. Ideally, the AI4I TTS endpoint would be used to generate audio for these languages, which would make this evaluation tool fully self-contained within the AI4I ecosystem.
 
-Currently this is not possible due to a setup and  configuration issue that prevents access to the TTS inference endpoint in the local setup. Once that is resolved, the audio generation script can be updated to use the AI4I TTS endpoint instead of gTTS, extending coverage to minority and tribal languages.
+Currently this is not possible due to a setup and configuration issue that prevents access to the TTS inference endpoint in the local setup. Once that is resolved, the audio generation script can be updated to use the AI4I TTS endpoint instead of gTTS, extending coverage to minority and tribal languages.
+
+### Audio Quality Limitations
+
+Since gTTS generates audio using a single synthetic voice, the current dataset does not account for:
+- **Multiple speakers** — all audio is from one voice per language
+- **Human-like natural speech** — gTTS lacks the natural pauses, tone variation, and rhythm of real human speech
+- **Background noise** — all audio is clean with no ambient noise, which does not reflect real-world usage
+- **Accents and dialects** — a single language can have many regional accents (e.g. Hindi spoken in Delhi vs UP vs Bihar sounds very different)
+- **Gender variation** — no distinction between male and female voices
+
+This means WER scores from this tool reflect performance on ideal, clean, synthetic audio and may not accurately represent real-world ASR performance. 
 
 In the meantime, alternative options include:
-- [IndicVoices-R](https://github.com/AI4Bharat/IndicVoices-R) — real human recordings for Bodo, Santali, Manipuri (access required)
+- [IndicVoices-R](https://github.com/AI4Bharat/IndicVoices-R) — real human recordings for Bodo, Santali, Manipuri **(access required)**
 - Native speaker recordings for truly unsupported languages like Garo and Khasi
 
 See [ADDING_LANGUAGES.md](./ADDING_LANGUAGES.md) for more details on how to extend language coverage.
