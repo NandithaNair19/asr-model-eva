@@ -10,6 +10,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from jiwer import wer, cer
+from dotenv import load_dotenv
+load_dotenv()
 
 # Config
 ASR_ENDPOINT = os.getenv("ASR_ENDPOINT", "http://<your-server>/v2/models/asr_am_ensemble/infer")
