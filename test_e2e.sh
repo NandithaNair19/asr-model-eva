@@ -21,9 +21,9 @@ log " Date: $(date)"
 # Step 1 - Clone repo
 log ""
 log "Step 1: Clone repository"
-run "git clone https://github.com/NandithaNair19/asr-model-eva.git ~/Downloads/cross-lingual-asr-eval-copy"
-cd ~/Downloads/cross-lingual-asr-eval-copy
-log "$ cd ~/Downloads/cross-lingual-asr-eval-copy"
+run "git clone https://github.com/NandithaNair19/asr-model-eva.git ~/Downloads/cross-lingual-asr-eval"
+cd ~/Downloads/cross-lingual-asr-eval
+log "$ cd ~/Downloads/cross-lingual-asr-eval"
 
 # Step 2 — Python version
 log ""
