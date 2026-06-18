@@ -1,4 +1,4 @@
-# Adding New Languages to indic-asr-eval
+# Adding New Languages to asr-model-eva
 
 This guide explains how to add a new language to the evaluation tool — from creating the dataset to generating audio and running the evaluation.
 
