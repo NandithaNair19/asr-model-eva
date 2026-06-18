@@ -72,13 +72,11 @@ Open `asr_eval.py` and add your language to the `LANGUAGES` dictionary:
 
 ```python
 LANGUAGES = {
-    "hindi": {"code": "hi", "service_id": "ai4bharat/asr-wav2vec2-hindi"},
+    "hindi": {"code": "hi"},
     ...
-    "bengali": {"code": "bn", "service_id": "ai4bharat/asr-wav2vec2-bengali"},
+    "bengali": {"code": "bn"},
 }
 ```
-
-> Note: The `service_id` should match the model name on your Triton inference server. 
 
 ---
 
