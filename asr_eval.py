@@ -25,6 +25,8 @@ LANGUAGES = {
     "malayalam": {"code": "ml"},
     "gujarati":  {"code": "gu"},
     "kannada":   {"code": "kn"},
+    "bengali":   {"code": "bn"},
+    "punjabi":   {"code": "pa"},
 }
 UNSUPPORTED = ["assamese", "garo", "khasi"]
 

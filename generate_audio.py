@@ -6,13 +6,15 @@ with open("references/references.json", "r", encoding="utf-8") as f:
     data = json.load(f)
 
 languages = {
-    "hindi": "hi",
-    "tamil": "ta",
-    "telugu": "te",
-    "marathi": "mr",
-    "malayalam": "ml",
-    "gujarati": "gu",
-    "kannada": "kn"
+    'hindi': 'hi',
+    'tamil': 'ta',
+    'telugu': 'te',
+    'marathi': 'mr',
+    'malayalam': 'ml',
+    'gujarati': 'gu',
+    'kannada': 'kn',
+    'bengali': 'bn',
+    'punjabi': 'pa',
 }
 
 os.makedirs("audio", exist_ok=True)
