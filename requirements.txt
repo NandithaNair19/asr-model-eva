@@ -8,3 +8,7 @@ soundfile
 pydub
 numpy
 python-dotenv
+fastapi
+uvicorn
+pydantic
+googletrans==4.0.0rc1
