@@ -52,6 +52,9 @@ This tool answers that question by:
 | Malayalam | ml |
 | Gujarati | gu |
 | Kannada | kn |
+| Bengali | be |
+| Punjabi | pa |
+| English | en |
 
 ---
 ## Project Structure
@@ -330,7 +333,7 @@ Install the required version:
 pip install googletrans==4.0.0rc1
 ```
 
-### Frontend fails to start
+### `Frontend fails to start`
 
 Make sure Node.js and npm are installed.
 
@@ -348,7 +351,7 @@ cd frontend
 npm install
 ```
 
-### Port 3000 already in use
+### `Port 3000 already in use`
 
 Another application is already using the React development server port.
 
@@ -358,7 +361,7 @@ Run on a different port:
 PORT=3001 npm start
 ```
 
-### Port 8000 already in use
+### `Port 8000 already in use`
 
 Another application is already using the FastAPI backend port.
 
@@ -368,7 +371,7 @@ Run on a different port:
 uvicorn main:app --host 0.0.0.0 --port 8001 --reload
 ```
 
-### Frontend cannot connect to backend
+### `Frontend cannot connect to backend`
 
 Make sure the backend is running before starting the frontend.
 
@@ -386,7 +389,7 @@ cd frontend
 npm start
 ```
 
-### Changes to `.env` are not taking effect
+### `Changes to .env are not taking effect`
 
 Restart the backend after modifying `.env`:
 
@@ -395,7 +398,7 @@ Ctrl + C
 uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### Real ASR mode is not working
+### `Real ASR mode is not working`
 
 Verify that the `.env` file contains:
 
@@ -410,7 +413,7 @@ If endpoint access is unavailable, switch to mock mode:
 USE_MOCK=true
 ```
 
-### WER is 0% for all languages in mock mode
+### `WER is 0% for all languages in mock mode`
 This is expected if no errors were randomly introduced. Run again — mock mode uses random error rates so results vary each run.
 
 ---
