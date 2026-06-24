@@ -2,6 +2,8 @@
 
 A cross-language ASR evaluation tool that benchmarks speech recognition consistency across Indic languages, computing WER (Word Error Rate) and CER (Character Error Rate) metrics with heatmap visualizations.
 
+The tool can be used both through a command-line interface and a browser-based web UI built with FastAPI and React, making it easier to run evaluations, compare results, and visualize performance across languages.
+
 Built as a contribution to the [AI4I Core](https://github.com/COSS-India/ai4i-core) platform — an open-source platform for Indic language AI services.
 
 ---
@@ -28,6 +30,7 @@ This tool answers that question by:
 |---|---|
 | Python 3.11 | Core language |
 | gTTS | Text-to-speech audio generation |
+| FastAPI | Backend API |
 | pydub | MP3 to float array conversion |
 | ffmpeg | Audio processing (required by pydub) |
 | jiwer | WER and CER calculation |
@@ -35,6 +38,7 @@ This tool answers that question by:
 | pandas | Results table |
 | seaborn + matplotlib | Heatmap generation |
 | requests | HTTP calls to ASR endpoint |
+| googletrans | Translation support |
 
 ---
 ## Supported Languages
@@ -55,6 +59,14 @@ This tool answers that question by:
 ```text
 indic-asr-eval/
 │
+├── backend/
+│   └── main.py
+│
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   └── package.json
+│
 ├── audio/
 │   └── Generated MP3 files
 │
@@ -72,8 +84,7 @@ indic-asr-eval/
 ├── ADDING_LANGUAGES.md
 └── README.md
 ```
-
-___
+---
 
 ## Dataset — references.json
 
@@ -118,6 +129,12 @@ sudo apt install ffmpeg -y
 - The endpoint format is: `http://<server-ip>:5000/v2/models/asr_am_ensemble/infer`
 - If you don't have access, use [Mock Mode](#running-in-mock-mode)
 
+**5. Node.js and npm**
+- Required for running the React frontend
+- Download from [nodejs.org](https://nodejs.org)
+Verify:
+`node --version`
+`npm --version`
 ---
 ## Setup
 
@@ -173,11 +190,17 @@ python3 asr_eval.py
 
 If you don't have access to the ASR endpoint, run the tool in mock mode which simulates ASR responses and demonstrates the full pipeline:
 
-Note: run all the steps except Step 5 as mentioned above in the Setup.
+Note: Only step 5 changes here.
 
-```python
-# In asr_eval.py
-USE_MOCK = True
+Copy the example env file:
+```bash
+cp .env.example .env
+```
+
+Open `.env` and leave the ASR_ENDPOINT server IP as it is and chnage the USER_MOCK to false:
+```
+ASR_ENDPOINT=http://<your-server>:5000/v2/models/asr_am_ensemble/infer
+USE_MOCK=false
 ```
 
 Then run:
@@ -186,6 +209,50 @@ python3 asr_eval.py
 ```
 
 Mock mode reads the real audio files but simulates transcription errors so you can see the full output without needing the endpoint.
+
+---
+# Running the Web UI
+
+The project includes a FastAPI backend and a React frontend for running evaluations through a browser.
+
+## Start the Backend
+
+```bash
+cd backend
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+The backend will be available at:
+
+```text
+http://localhost:8000
+```
+
+---
+
+## Frontend Setup
+
+Open a new terminal and run:
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+The frontend will be available at:
+
+```text
+http://localhost:3000
+```
+
+---
+## Using the UI
+
+1. Open `http://localhost:3000` in your browser.
+2. Enter the text you want to evaluate.
+3. Click **Run Evaluation**.
+4. View the generated audio, transcription output, WER, and CER directly in the browser along with the heatmaps.
 
 ---
 ## Output
@@ -246,6 +313,101 @@ You are using Python 3.13 which removed the `audioop` module. Switch to Python 3
 python3.11 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+```
+### `ModuleNotFoundError: No module named 'fastapi'`
+
+Install the project dependencies again:
+
+```bash
+pip install -r requirements.txt
+```
+
+### `ModuleNotFoundError: No module named 'googletrans'`
+
+Install the required version:
+
+```bash
+pip install googletrans==4.0.0rc1
+```
+
+### Frontend fails to start
+
+Make sure Node.js and npm are installed.
+
+Verify:
+
+```bash
+node --version
+npm --version
+```
+
+Then install frontend dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+### Port 3000 already in use
+
+Another application is already using the React development server port.
+
+Run on a different port:
+
+```bash
+PORT=3001 npm start
+```
+
+### Port 8000 already in use
+
+Another application is already using the FastAPI backend port.
+
+Run on a different port:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+```
+
+### Frontend cannot connect to backend
+
+Make sure the backend is running before starting the frontend.
+
+Backend:
+
+```bash
+cd backend
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Frontend:
+
+```bash
+cd frontend
+npm start
+```
+
+### Changes to `.env` are not taking effect
+
+Restart the backend after modifying `.env`:
+
+```bash
+Ctrl + C
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### Real ASR mode is not working
+
+Verify that the `.env` file contains:
+
+```env
+ASR_ENDPOINT=http://<server-ip>:5000/v2/models/asr_am_ensemble/infer
+USE_MOCK=false
+```
+
+If endpoint access is unavailable, switch to mock mode:
+
+```env
+USE_MOCK=true
 ```
 
 ### WER is 0% for all languages in mock mode
