@@ -2,7 +2,7 @@
 
 A cross-language ASR evaluation tool that benchmarks speech recognition consistency across Indic languages, computing WER (Word Error Rate) and CER (Character Error Rate) metrics with heatmap visualizations.
 
-The tool can be used both through a command-line interface and a browser-based web UI built with FastAPI and React, making it easier to run evaluations, compare results, and visualize performance across languages.
+The tool can be used through both, a command-line interface and a browser-based web UI built with FastAPI and React, making it easier to run evaluations, compare results, and visualize performance across languages.
 
 Built as a contribution to the [AI4I Core](https://github.com/COSS-India/ai4i-core) platform — an open-source platform for Indic language AI services.
 
@@ -26,19 +26,22 @@ This tool answers that question by:
 ![Architecture diagram](docs/architecture.png)
 ## Tech Stack
 
-| Tool | Purpose |
-|---|---|
-| Python 3.11 | Core language |
-| gTTS | Text-to-speech audio generation |
-| FastAPI | Backend API |
-| pydub | MP3 to float array conversion |
-| ffmpeg | Audio processing (required by pydub) |
-| jiwer | WER and CER calculation |
-| numpy | Audio signal processing |
-| pandas | Results table |
-| seaborn + matplotlib | Heatmap generation |
-| requests | HTTP calls to ASR endpoint |
-| googletrans | Translation support |
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Python | 3.11 | Core programming language |
+| FastAPI | 0.138.0 | Backend API |
+| gTTS | 2.5.4 | Text-to-speech audio generation |
+| pydub | 0.25.1 | MP3 to float array conversion |
+| ffmpeg | 7.x+ | Audio processing (required by pydub) |
+| jiwer | 4.0.0 | WER and CER calculation |
+| numpy | 2.4.6 | Audio signal processing |
+| pandas | 3.0.3 | Results table generation |
+| seaborn | 0.13.2 | Heatmap visualization |
+| matplotlib | 3.11.0 | Plot generation |
+| requests | 2.34.2 | HTTP calls to the ASR endpoint |
+| googletrans | 4.0.0rc1 | Translation support |
+| python-dotenv | 1.2.2 | Environment variable management |
+| Uvicorn | 0.49.0 | ASGI server for the FastAPI backend |
 
 ---
 ## Supported Languages
@@ -52,7 +55,7 @@ This tool answers that question by:
 | Malayalam | ml |
 | Gujarati | gu |
 | Kannada | kn |
-| Bengali | be |
+| Bengali | bn |
 | Punjabi | pa |
 | English | en |
 
@@ -91,7 +94,7 @@ indic-asr-eval/
 
 ## Dataset — references.json
 
-The `references/references.json` file contains the test dataset used for evaluation. It has **10 everyday sentences** translated into all 7 supported languages. These sentences were chosen to reflect practical, real-world usage of the AI4I platform.
+The `references/references.json` file contains the test dataset used for evaluation. It has **10 everyday sentences** translated into all 9 supported languages. These sentences were chosen to reflect practical, real-world usage of the AI4I platform.
 
 You can use the existing dataset as-is, or create your own custom dataset with your own sentences and languages.
 
@@ -167,7 +170,7 @@ pip install -r requirements.txt
 ```bash
 python3 generate_audio.py
 ```
-This creates 70 MP3 files in the `audio/` folder (10 sentences × 7 languages).
+This creates 90 MP3 files in the `audio/` folder (10 sentences × 9 languages).
 
 **Step 5 — Configure the ASR endpoint:**
 
@@ -178,7 +181,7 @@ cp .env.example .env
 
 Open `.env` and set your server IP:
 ```
-ASR_ENDPOINT=http://<your-server>:5000/v2/models/asr_am_ensemble/infer
+ASR_ENDPOINT=<your-server-ip>
 USE_MOCK=false
 ```
 
@@ -200,11 +203,11 @@ Copy the example env file:
 cp .env.example .env
 ```
 
-Open `.env` and leave the ASR_ENDPOINT server IP as it is and chnage the USER_MOCK to false:
-```
-ASR_ENDPOINT=http://<your-server>:5000/v2/models/asr_am_ensemble/infer
-USE_MOCK=false
-```
+Open `.env` and set:
+
+```env
+USE_MOCK=true
+You can leave the ASR_ENDPOINT value unchanged since it is ignored in mock mode.
 
 Then run:
 ```bash
@@ -230,7 +233,8 @@ The backend will be available at:
 ```text
 http://localhost:8000
 ```
-
+Swagger documentation:
+http://localhost:8000/docs
 ---
 
 ## Frontend Setup
@@ -255,7 +259,7 @@ http://localhost:3000
 1. Open `http://localhost:3000` in your browser.
 2. Enter the text you want to evaluate.
 3. Click **Run Evaluation**.
-4. View the generated audio, transcription output, WER, and CER directly in the browser along with the heatmaps.
+4. View the transcription output, WER, CER, and generated heatmaps directly in the browser.
 
 ---
 ## Output
@@ -389,7 +393,7 @@ cd frontend
 npm start
 ```
 
-### `Changes to .env are not taking effect`
+### `Changes to `.env` are not taking effect`
 
 Restart the backend after modifying `.env`:
 
@@ -403,7 +407,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 Verify that the `.env` file contains:
 
 ```env
-ASR_ENDPOINT=http://<server-ip>:5000/v2/models/asr_am_ensemble/infer
+ASR_ENDPOINT=<your-server-ip>
 USE_MOCK=false
 ```
 
@@ -447,7 +451,7 @@ The script will:
 
 ### Output
 
-All commands and their outputs are logged to `e2e_test_log.txt` in plaintext. This file documents the full run  of a successful end-to-end test.
+All commands and their outputs are logged to `e2e_test_log.txt` in plaintext. This file documents the full run of a successful end-to-end test.
 
 ---
 ## Cost Breakdown
@@ -459,7 +463,7 @@ All commands and their outputs are logged to `e2e_test_log.txt` in plaintext. Th
 | gTTS audio generation (70 files) | Free |
 | ASR endpoint (AI4I Triton server) | Provided by AI4I team |
 
-**Running this tool locally is completely free** as long as you have access to the ASR endpoint.
+**Running this tool locally is completely free**. Access to an AI4I ASR endpoint is only required when using Real ASR mode.
 
 ---
 
@@ -467,7 +471,7 @@ All commands and their outputs are logged to `e2e_test_log.txt` in plaintext. Th
 
 ### Language Coverage
 
-This tool currently supports 7 Indic languages for audio generation using [gTTS (Google Text-to-Speech)](https://gtts.readthedocs.io/).
+This tool currently supports 9 Indic languages for audio generation using [gTTS (Google Text-to-Speech)](https://gtts.readthedocs.io/).
 
 For languages like Garo, Khasi, Bodo, Mizo, and Tulu — gTTS does not provide support. However, the AI4I platform itself has TTS capabilities for a wider range of Indic languages. Ideally, the AI4I TTS endpoint would be used to generate audio for these languages, which would make this evaluation tool fully self-contained within the AI4I ecosystem.
 

@@ -1,10 +1,9 @@
 import numpy as np
-import soundfile as sf
 from pydub import AudioSegment
-import io
 import json
+import unicodedata
+import re
 import os
-import base64
 import random
 import pandas as pd
 import seaborn as sns
@@ -14,8 +13,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Config
-ASR_ENDPOINT = os.getenv("ASR_ENDPOINT", "http://<your-server>/v2/models/asr_am_ensemble/infer")
-USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"  
+USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
+ASR_ENDPOINT = os.getenv("ASR_ENDPOINT")
+
+def normalize_text(text):
+    text = unicodedata.normalize("NFC", text)
+    text = re.sub(r"\s+", " ", text)  # Replace multiple whitespace characters with a single space
+    return text.strip()
+
+if not USE_MOCK and not ASR_ENDPOINT:
+    raise ValueError(
+        "ASR_ENDPOINT is not set. Please add it to your .env file."
+    )
+  
 
 LANGUAGES = {
     "hindi":     {"code": "hi"},
@@ -88,13 +98,16 @@ def real_asr(audio_path, language_code):
     }
     
     response = requests.post(
-        ASR_ENDPOINT,  
+        ASR_ENDPOINT,
         json=payload,
-        headers={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json"},
+        timeout=60
     )
-    
+
+    response.raise_for_status()   # Raises an exception if the server returns 4xx/5xx
+
     result = response.json()
-    print(f"    📡 Server response status: {response.status_code}")
+    print(f"    Server response status: {response.status_code}")
     return result["outputs"][0]["data"][0]
 
 # Main Evaluation
@@ -132,8 +145,11 @@ def run_evaluation():
             print(f"      HYP: {hyp_text}")
 
         if references:
-            word_error_rate = wer(references, hypotheses)
-            char_error_rate = cer(references, hypotheses)
+            references_norm = [normalize_text(t) for t in references]
+            hypotheses_norm = [normalize_text(t) for t in hypotheses]
+
+            word_error_rate = wer(references_norm, hypotheses_norm)
+            char_error_rate = cer(references_norm, hypotheses_norm)
             results[lang] = {
                 "WER (%)": round(word_error_rate * 100, 2),
                 "CER (%)": round(char_error_rate * 100, 2)
