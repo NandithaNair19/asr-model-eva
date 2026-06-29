@@ -10,109 +10,115 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from jiwer import wer, cer
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Config
 USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
 ASR_ENDPOINT = os.getenv("ASR_ENDPOINT")
+REFERENCE_FILE = os.getenv("REFERENCE_FILE", "references/references.json")
+
 
 def normalize_text(text):
     text = unicodedata.normalize("NFC", text)
-    text = re.sub(r"\s+", " ", text)  # Replace multiple whitespace characters with a single space
+    text = re.sub(r"\s+", " ", text)
     return text.strip()
 
+
 if not USE_MOCK and not ASR_ENDPOINT:
-    raise ValueError(
-        "ASR_ENDPOINT is not set. Please add it to your .env file."
-    )
-  
+    raise ValueError("ASR_ENDPOINT is not set. Please add it to your .env file.")
+
 
 LANGUAGES = {
-    "hindi":     {"code": "hi"},
-    "tamil":     {"code": "ta"},
-    "telugu":    {"code": "te"},
-    "marathi":   {"code": "mr"},
+    "hindi": {"code": "hi"},
+    "tamil": {"code": "ta"},
+    "telugu": {"code": "te"},
+    "marathi": {"code": "mr"},
     "malayalam": {"code": "ml"},
-    "gujarati":  {"code": "gu"},
-    "kannada":   {"code": "kn"},
-    "bengali":   {"code": "bn"},
-    "punjabi":   {"code": "pa"},
+    "gujarati": {"code": "gu"},
+    "kannada": {"code": "kn"},
+    "bengali": {"code": "bn"},
+    "punjabi": {"code": "pa"},
 }
+
 UNSUPPORTED = ["assamese", "garo", "khasi"]
 
-#  Mock ASR 
+
+# Mock ASR
 def mock_asr(audio_path, reference_text):
     """Reads audio file to confirm it exists, then simulates ASR response."""
-    # Actually read the audio file
     with open(audio_path, "rb") as f:
         audio_bytes = f.read()
+
     file_size = len(audio_bytes)
     print(f"     Audio file read: {audio_path} ({file_size} bytes)")
 
-    # Simulate ASR errors randomly
     words = reference_text.split()
     error_rate = random.uniform(0.05, 0.45)
     num_errors = int(len(words) * error_rate)
+
     for _ in range(num_errors):
         idx = random.randint(0, len(words) - 1)
         words[idx] = "????"
+
     return " ".join(words)
 
-#  Real ASR 
-# NOTE: real_asr() is not tested in CI as it requires access to a private inference server. Test manually by setting USE_MOCK=false in .env and running: python3 asr_eval.py
+
+# Real ASR
+# NOTE: real_asr() is not tested in CI as it requires access to a private inference server.
+# Test manually by setting USE_MOCK=false in .env and running: python3 asr_eval.py
 def real_asr(audio_path, language_code):
     import requests
+
     print(f"     Calling real ASR endpoint for {audio_path}...")
-    
-    
-    # Convert mp3 to wav and load as float array
+
     audio = AudioSegment.from_mp3(audio_path)
     audio = audio.set_frame_rate(16000).set_channels(1)
-    
-    # Convert to numpy float32 array
+
     samples = np.array(audio.get_array_of_samples(), dtype=np.float32)
-    samples = samples / 32768.0  # normalize to -1 to 1
+    samples = samples / 32768.0
     num_samples = len(samples)
-    
+
     payload = {
         "inputs": [
             {
                 "name": "AUDIO_SIGNAL",
                 "shape": [1, num_samples],
                 "datatype": "FP32",
-                "data": samples.tolist()
+                "data": samples.tolist(),
             },
             {
                 "name": "NUM_SAMPLES",
                 "shape": [1, 1],
                 "datatype": "INT32",
-                "data": [num_samples]
+                "data": [num_samples],
             },
             {
                 "name": "LANG_ID",
                 "shape": [1, 1],
                 "datatype": "BYTES",
-                "data": [language_code]
-            }
+                "data": [language_code],
+            },
         ]
     }
-    
+
     response = requests.post(
         ASR_ENDPOINT,
         json=payload,
         headers={"Content-Type": "application/json"},
-        timeout=60
+        timeout=60,
     )
 
-    response.raise_for_status()   # Raises an exception if the server returns 4xx/5xx
+    response.raise_for_status()
 
     result = response.json()
     print(f"    Server response status: {response.status_code}")
     return result["outputs"][0]["data"][0]
 
+
 # Main Evaluation
 def run_evaluation():
-    with open("references/references.json") as f:
+    with open(REFERENCE_FILE) as f:
         data = json.load(f)
 
     results = {}
@@ -133,13 +139,11 @@ def run_evaluation():
             if USE_MOCK:
                 hyp_text = mock_asr(audio_path, ref_text)
             else:
-                hyp_text = real_asr(
-                    audio_path,
-                    LANGUAGES[lang]["code"]
-                )
+                hyp_text = real_asr(audio_path, LANGUAGES[lang]["code"])
 
             references.append(ref_text)
             hypotheses.append(hyp_text)
+
             print(f"      Sentence {sentence['id']}")
             print(f"      REF: {ref_text}")
             print(f"      HYP: {hyp_text}")
@@ -150,31 +154,38 @@ def run_evaluation():
 
             word_error_rate = wer(references_norm, hypotheses_norm)
             char_error_rate = cer(references_norm, hypotheses_norm)
+
             results[lang] = {
                 "WER (%)": round(word_error_rate * 100, 2),
-                "CER (%)": round(char_error_rate * 100, 2)
+                "CER (%)": round(char_error_rate * 100, 2),
             }
-            print(f" WER: {results[lang]['WER (%)']}% | CER: {results[lang]['CER (%)']}%")
+
+            print(
+                f" WER: {results[lang]['WER (%)']}% | CER: {results[lang]['CER (%)']}%"
+            )
         else:
             print(f"   No audio files found for {lang}")
 
     return results
 
-#  Save Results 
+
+# Save Results
 def save_results(results):
     os.makedirs("results", exist_ok=True)
 
-    # CSV report
-    df = pd.DataFrame([
-        {"Language": lang, "WER (%)": v["WER (%)"], "CER (%)": v["CER (%)"]}
-        for lang, v in results.items()
-    ])
+    df = pd.DataFrame(
+        [
+            {"Language": lang, "WER (%)": v["WER (%)"], "CER (%)": v["CER (%)"]}
+            for lang, v in results.items()
+        ]
+    )
+
     df = df.sort_values("WER (%)")
     df.to_csv("results/report.csv", index=False)
+
     print("\n Report saved to results/report.csv")
     print(df.to_string(index=False))
 
-    # Heatmap for WER
     wer_data = pd.DataFrame([{lang: v["WER (%)"] for lang, v in results.items()}])
     plt.figure(figsize=(12, 3))
     sns.heatmap(
@@ -183,17 +194,16 @@ def save_results(results):
         fmt=".1f",
         cmap="RdYlGn_r",
         linewidths=0.5,
-        cbar_kws={"label": "WER (%) — lower is better"}
+        cbar_kws={"label": "WER (%) — lower is better"},
     )
     plt.title(
         "Cross-Language ASR Consistency — WER\n(Word Error Rate % — lower is better)",
-        fontsize=13
+        fontsize=13,
     )
     plt.tight_layout()
     plt.savefig("results/wer_heatmap.png", dpi=150)
     print(" WER Heatmap saved to results/wer_heatmap.png")
 
-    # Heatmap for CER
     cer_data = pd.DataFrame([{lang: v["CER (%)"] for lang, v in results.items()}])
     plt.figure(figsize=(12, 3))
     sns.heatmap(
@@ -202,37 +212,40 @@ def save_results(results):
         fmt=".1f",
         cmap="RdYlGn_r",
         linewidths=0.5,
-        cbar_kws={"label": "CER (%) — lower is better"}
+        cbar_kws={"label": "CER (%) — lower is better"},
     )
     plt.title(
         "Cross-Language ASR Consistency — CER\n(Character Error Rate % — lower is better)",
-        fontsize=13
+        fontsize=13,
     )
     plt.tight_layout()
     plt.savefig("results/cer_heatmap.png", dpi=150)
     print(" CER Heatmap saved to results/cer_heatmap.png")
 
-    # Summary
     best = min(results, key=lambda x: results[x]["WER (%)"])
     worst = max(results, key=lambda x: results[x]["WER (%)"])
     avg_wer = round(sum(v["WER (%)"] for v in results.values()) / len(results), 2)
     avg_cer = round(sum(v["CER (%)"] for v in results.values()) / len(results), 2)
-    print(f"\n Summary:")
+
+    print("\n Summary:")
     print(f"   Best language:  {best} (WER: {results[best]['WER (%)']}%)")
     print(f"   Worst language: {worst} (WER: {results[worst]['WER (%)']}%)")
     print(f"   Average WER: {avg_wer}%")
     print(f"   Average CER: {avg_cer}%")
 
-    # Unsupported languages
     print("\n  Unsupported languages (no TTS/dataset available):")
     for lang in UNSUPPORTED:
         print(f"   - {lang.capitalize()}: real audio recordings needed")
-#  Run 
+
+
+# Run
 if __name__ == "__main__":
     print(" Starting Cross-Language ASR Consistency Evaluation")
     print(f"   Mode: {'MOCK' if USE_MOCK else 'REAL ASR'}")
     print(f"   Languages: {', '.join(LANGUAGES.keys())}")
-    print(f"   Sentences: 10 per language\n")
+    print("   Sentences: configurable via REFERENCE_FILE\n")
+
     results = run_evaluation()
     save_results(results)
+
     print("\n Evaluation complete!")

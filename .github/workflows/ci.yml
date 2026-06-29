@@ -30,13 +30,16 @@ jobs:
       - name: Check Python files
         run: |
           python -m py_compile asr_eval.py generate_audio.py
-      
-      - name: Generate audio files
-        run: python3 generate_audio.py
+
+      - name: Prepare CI audio files
+        run: |
+          rm -rf audio
+          cp -r ci_test_audio audio
 
       - name: Run evaluation in mock mode
         env:
           USE_MOCK: "true"
+          REFERENCE_FILE: "references/ci_references.json"
         run: python3 asr_eval.py
 
       - name: Validate real_asr function signature
