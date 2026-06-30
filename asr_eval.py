@@ -20,9 +20,20 @@ REFERENCE_FILE = os.getenv("REFERENCE_FILE", "references/references.json")
 
 
 def normalize_text(text):
+    # Unicode normalization
     text = unicodedata.normalize("NFC", text)
+
+    # Normalize whitespace
     text = re.sub(r"\s+", " ", text)
+
+    # Remove all Unicode punctuation
+    text = "".join(
+        ch for ch in text
+        if not unicodedata.category(ch).startswith("P")
+    )
+
     return text.strip()
+
 
 
 if not USE_MOCK and not ASR_ENDPOINT:
