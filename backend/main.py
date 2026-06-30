@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File, Form
+import shutil
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -78,6 +79,45 @@ def save_single_sentence_heatmaps(results):
     plt.savefig("results/single_cer_heatmap.png", dpi=150)
     plt.close()
 
+@app.post("/live-voice-test")
+async def live_voice_test(
+    file: UploadFile = File(...),
+    language: str = Form(...),
+    reference: str = Form(...)
+):
+    os.makedirs("recordings", exist_ok=True)
+    # Save the latest recording for debugging/demo purposes.
+# This can be switched back to a temporary file after review.
+    audio_path = "recordings/latest_recording.webm"
+
+    try:
+        with open(audio_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        print("Saved to:", audio_path)
+        print("Saved file size:", os.path.getsize(audio_path))
+            
+
+        if USE_MOCK:
+            hypothesis = mock_asr(audio_path, reference)
+        else:
+            hypothesis = real_asr(audio_path, LANGUAGES[language]["code"])
+
+        return {
+            "language": language,
+            "reference": reference,
+            "hypothesis": hypothesis,
+            "WER (%)": round(wer(reference, hypothesis) * 100, 2),
+            "CER (%)": round(cer(reference, hypothesis) * 100, 2),
+            "mode": "MOCK" if USE_MOCK else "REAL ASR"
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
+
+    #finally:
+        #if os.path.exists(audio_path):
+            #os.unlink(audio_path)
 
 @app.post("/evaluate")
 def evaluate(request: EvalRequest):
