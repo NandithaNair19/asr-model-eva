@@ -208,6 +208,8 @@ Open `.env` and set:
 
 ```env
 USE_MOCK=true
+```
+
 You can leave the ASR_ENDPOINT value unchanged since it is ignored in mock mode.
 
 Then run:
@@ -510,6 +512,7 @@ See [ADDING_LANGUAGES.md](./ADDING_LANGUAGES.md) for more details on how to exte
 ### Live Voice Feature 
 
 The Live Voice Test feature requires access to a real ASR endpoint to evaluate actual speech. In mock mode, the complete frontend and backend workflow can be tested, but the transcription itself is simulated.
+
 ---
 
 ## Acknowledgements
