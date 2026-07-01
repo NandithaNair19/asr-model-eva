@@ -85,19 +85,15 @@ async def live_voice_test(
     language: str = Form(...),
     reference: str = Form(...)
 ):
-    os.makedirs("recordings", exist_ok=True)
-    # Save the latest recording for debugging/demo purposes.
-# This can be switched back to a temporary file after review.
-    audio_path = "recordings/latest_recording.webm"
+    temp_audio = tempfile.NamedTemporaryFile(suffix=".webm", delete=False)
+    audio_path = temp_audio.name
+    temp_audio.close()
+    
 
     try:
         with open(audio_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-
-        print("Saved to:", audio_path)
-        print("Saved file size:", os.path.getsize(audio_path))
             
-
         if USE_MOCK:
             hypothesis = mock_asr(audio_path, reference)
         else:
@@ -110,17 +106,17 @@ async def live_voice_test(
             "language": language,
             "reference": reference,
             "hypothesis": hypothesis,
-            "WER (%)": round(wer(reference_norm, hypothesis) * 100, 2),
-            "CER (%)": round(cer(reference_norm, hypothesis) * 100, 2),
+            "WER (%)": round(wer(reference_norm, hypothesis_norm) * 100, 2),
+            "CER (%)": round(cer(reference_norm, hypothesis_norm) * 100, 2),
             "mode": "MOCK" if USE_MOCK else "REAL ASR"
         }
 
     except Exception as e:
         return {"error": str(e)}
 
-    #finally:
-        #if os.path.exists(audio_path):
-            #os.unlink(audio_path)
+    finally:
+        if os.path.exists(audio_path):
+            os.unlink(audio_path)
 
 @app.post("/evaluate")
 def evaluate(request: EvalRequest):

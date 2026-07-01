@@ -13,17 +13,18 @@ Built as a contribution to the [AI4I Core](https://github.com/COSS-India/ai4i-co
 AI4I Core provides ASR (Automatic Speech Recognition) for Indian languages. But how consistently does it perform across languages? Does it work equally well for all languages?
 
 This tool answers that question by:
-1. Taking audio samples in multiple Indic languages
-2. Sending them to the ASR inference endpoint
+
+1. Accepting either generated speech or live recorded speech
+2. Sending the audio to the ASR inference endpoint
 3. Comparing transcriptions against reference text
-4. Calculating WER and CER per language
-5. Generating heatmaps and a CSV report
+4. Calculating WER and CER
+5. Visualizing the results using heatmaps and reports
 
 ---
 
 ## Architecture
 
-![Architecture diagram](docs/architecture.png)
+![Architecture diagram](docs/updated_architecture.png)
 ## Tech Stack
 
 | Tool | Version | Purpose |
@@ -256,15 +257,27 @@ http://localhost:3000
 ---
 ## Using the UI
 
+### Text Evaluation
+
 1. Open `http://localhost:3000` in your browser.
-2. Enter the text you want to evaluate.
-3. Click **Run Evaluation**.
-4. View the transcription output, WER, CER, and generated heatmaps directly in the browser.
+2. Select the **Text Evaluation** tab.
+3. Enter a sentence in any supported language.
+4. Click **Evaluate**.
+5. View the detected language, translations, ASR output, WER/CER scores, and generated heatmaps.
+
+### Live Voice Test
+
+1. Select the **Live Voice Test** tab.
+2. Choose a language.
+3. Read the reference sentence displayed on the screen.
+4. Click **Start Recording**, speak the sentence, and then click **Stop Recording**.
+5. Click **Run Live Voice Test**.
+6. View the ASR transcription along with the WER and CER for your recording.
 
 ---
 ## Output
 
-### Terminal
+### Command-Line Output
 The terminal output should look something like this:
 ![Terminal Output](docs/terminal_output.png)
 
@@ -460,7 +473,7 @@ All commands and their outputs are logged to `e2e_test_log.txt` in plaintext. Th
 |---|---|
 | Python, all pip libraries | Free |
 | ffmpeg | Free |
-| gTTS audio generation (70 files) | Free |
+| gTTS audio generation (90 files) | Free |
 | ASR endpoint (AI4I Triton server) | Provided by AI4I team |
 
 **Running this tool locally is completely free**. Access to an AI4I ASR endpoint is only required when using Real ASR mode.
@@ -494,6 +507,9 @@ In the meantime, alternative options include:
 
 See [ADDING_LANGUAGES.md](./ADDING_LANGUAGES.md) for more details on how to extend language coverage.
 
+### Live Voice Feature 
+
+The Live Voice Test feature requires access to a real ASR endpoint to evaluate actual speech. In mock mode, the complete frontend and backend workflow can be tested, but the transcription itself is simulated.
 ---
 
 ## Acknowledgements
