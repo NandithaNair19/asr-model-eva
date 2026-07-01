@@ -17,7 +17,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from asr_eval import LANGUAGES, USE_MOCK, mock_asr, real_asr
+from asr_eval import LANGUAGES, USE_MOCK, mock_asr, real_asr, normalize_text
 
 app = FastAPI()
 translator = Translator()
@@ -103,12 +103,15 @@ async def live_voice_test(
         else:
             hypothesis = real_asr(audio_path, LANGUAGES[language]["code"])
 
+        reference_norm = normalize_text(reference)
+        hypothesis_norm = normalize_text(hypothesis)
+
         return {
             "language": language,
             "reference": reference,
             "hypothesis": hypothesis,
-            "WER (%)": round(wer(reference, hypothesis) * 100, 2),
-            "CER (%)": round(cer(reference, hypothesis) * 100, 2),
+            "WER (%)": round(wer(reference_norm, hypothesis) * 100, 2),
+            "CER (%)": round(cer(reference_norm, hypothesis) * 100, 2),
             "mode": "MOCK" if USE_MOCK else "REAL ASR"
         }
 

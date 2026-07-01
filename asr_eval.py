@@ -83,7 +83,7 @@ def real_asr(audio_path, language_code):
 
     print(f"     Calling real ASR endpoint for {audio_path}...")
 
-    audio = AudioSegment.from_mp3(audio_path)
+    audio = AudioSegment.from_file(audio_path)
     audio = audio.set_frame_rate(16000).set_channels(1)
 
     samples = np.array(audio.get_array_of_samples(), dtype=np.float32)
