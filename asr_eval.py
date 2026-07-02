@@ -16,6 +16,8 @@ load_dotenv()
 # Config
 USE_MOCK = os.getenv("USE_MOCK", "true").lower() == "true"
 ASR_ENDPOINT = os.getenv("ASR_ENDPOINT")
+TTS_PROVIDER = os.getenv("TTS_PROVIDER", "gtts").lower()
+TTS_ENDPOINT = os.getenv("TTS_ENDPOINT")
 REFERENCE_FILE = os.getenv("REFERENCE_FILE", "references/references.json")
 
 

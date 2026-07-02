@@ -1,21 +1,10 @@
-import { useState } from "react";
-
-const voiceReferences = {
-  hindi: "बच्चा स्कूल जा रहा है",
-  tamil: "குழந்தை பள்ளிக்குச் செல்கிறது",
-  telugu: "పిల్లవాడు పాఠశాలకు వెళ్తున్నాడు",
-  marathi: "मूल शाळेत जात आहे",
-  malayalam: "കുട്ടി സ്കൂളിലേക്ക് പോകുന്നു",
-  gujarati: "બાળક શાળાએ જઈ રહ્યું છે",
-  kannada: "ಮಗು ಶಾಲೆಗೆ ಹೋಗುತ್ತಿದೆ",
-  bengali: "শিশু স্কুলে যাচ্ছে",
-  punjabi: "ਬੱਚਾ ਸਕੂਲ ਜਾ ਰਿਹਾ ਹੈ",
-};
+import { useEffect, useState } from "react";
 
 function App() {
   const [activeTab, setActiveTab] = useState("text");
 
   const [selectedLanguage, setSelectedLanguage] = useState("hindi");
+  const [voiceReference, setVoiceReference] = useState("");
   const [recording, setRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [audioBlob, setAudioBlob] = useState(null);
@@ -26,6 +15,44 @@ function App() {
   const [meta, setMeta] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const languages = [
+    "hindi",
+    "tamil",
+    "telugu",
+    "marathi",
+    "malayalam",
+    "gujarati",
+    "kannada",
+    "bengali",
+    "punjabi",
+  ];
+
+  const fetchVoiceReference = async (language) => {
+    try {
+      setError(null);
+      setVoiceResult(null);
+      setAudioBlob(null);
+
+      const response = await fetch(`http://localhost:8000/reference/${language}`);
+      const data = await response.json();
+
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+
+      setVoiceReference(data.reference);
+    } catch (err) {
+      setError("Failed to fetch reference sentence.");
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "voice") {
+      fetchVoiceReference(selectedLanguage);
+    }
+  }, [activeTab, selectedLanguage]);
 
   const startRecording = async () => {
     try {
@@ -44,7 +71,10 @@ function App() {
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+        const blob = new Blob(chunks, {
+          type: recorder.mimeType || "audio/webm",
+        });
+
         console.log("Recorded blob size:", blob.size);
         setAudioBlob(blob);
         stream.getTracks().forEach((track) => track.stop());
@@ -59,48 +89,54 @@ function App() {
   };
 
   const stopRecording = () => {
-  if (mediaRecorder && mediaRecorder.state !== "inactive") {
-    mediaRecorder.requestData();
-    mediaRecorder.stop();
-    setRecording(false);
-  }
-};
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.requestData();
+      mediaRecorder.stop();
+      setRecording(false);
+    }
+  };
 
   const runLiveVoiceTest = async () => {
-  if (!audioBlob) {
-    setError("Please record audio first.");
-    return;
-  }
-
-  setLoading(true);
-  setError(null);
-  setVoiceResult(null);
-
-  const formData = new FormData();
-  formData.append("file", audioBlob, "recording.webm");
-  formData.append("language", selectedLanguage);
-  formData.append("reference", voiceReferences[selectedLanguage]);
-
-  try {
-    const response = await fetch("http://localhost:8000/live-voice-test", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await response.json();
-
-    if (data.error) {
-      setError(data.error);
+    if (!audioBlob) {
+      setError("Please record audio first.");
       return;
     }
 
-    setVoiceResult(data);
-  } catch (err) {
-    setError("Failed to run live voice test.");
-  } finally {
-    setLoading(false);
-  }
-};
+    if (!voiceReference) {
+      setError("Reference sentence is still loading. Please try again.");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setVoiceResult(null);
+
+    const formData = new FormData();
+    formData.append("file", audioBlob, "recording.webm");
+    formData.append("language", selectedLanguage);
+    formData.append("reference", voiceReference);
+
+    try {
+      const response = await fetch("http://localhost:8000/live-voice-test", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+
+      setVoiceResult(data);
+    } catch (err) {
+      setError("Failed to run live voice test.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const evaluate = async () => {
     if (!sentence.trim()) return;
 
@@ -208,7 +244,7 @@ function App() {
               }}
               style={selectStyle}
             >
-              {Object.keys(voiceReferences).map((lang) => (
+              {languages.map((lang) => (
                 <option key={lang} value={lang}>
                   {lang.charAt(0).toUpperCase() + lang.slice(1)}
                 </option>
@@ -218,7 +254,7 @@ function App() {
 
           <div style={referenceBoxStyle}>
             <h3>Reference Sentence</h3>
-            <p style={referenceSentenceStyle}>{voiceReferences[selectedLanguage]}</p>
+            <p style={referenceSentenceStyle}>{voiceReference || "Loading..."}</p>
           </div>
 
           <div style={{ marginTop: 25 }}>
@@ -234,16 +270,17 @@ function App() {
           </div>
 
           <p style={{ color: "#666", marginTop: 15 }}>
-            
             {recording
               ? "Recording... please read the sentence aloud."
               : audioBlob
               ? "Recording saved. Click Run Live Voice Test."
               : "Click Start Recording and read the sentence aloud."}
           </p>
+
           {audioBlob && !recording && (
             <button
               onClick={runLiveVoiceTest}
+              disabled={loading}
               style={{
                 marginTop: 20,
                 padding: "12px 24px",
@@ -255,9 +292,10 @@ function App() {
                 cursor: "pointer",
               }}
             >
-              Run Live Voice Test
+              {loading ? "Running..." : "Run Live Voice Test"}
             </button>
-        )}
+          )}
+
           {voiceResult && (
             <div style={voiceResultStyle}>
               <h3>Live Voice Result</h3>

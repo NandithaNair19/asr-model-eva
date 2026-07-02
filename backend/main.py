@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from googletrans import Translator
-from gtts import gTTS
+from tts import generate_audio
 from jiwer import wer, cer
 import pandas as pd
 import seaborn as sns
@@ -14,10 +14,12 @@ import matplotlib.pyplot as plt
 import tempfile
 import os
 import sys
+import json
+import random
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from asr_eval import LANGUAGES, USE_MOCK, mock_asr, real_asr, normalize_text
+from asr_eval import LANGUAGES, USE_MOCK, TTS_PROVIDER, TTS_ENDPOINT, mock_asr, real_asr, normalize_text
 
 app = FastAPI()
 translator = Translator()
@@ -46,12 +48,6 @@ def health():
 def translate_sentence(sentence, target_lang):
     return translator.translate(sentence, dest=target_lang).text
 
-
-def generate_audio(text, lang_code):
-    temp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
-    temp.close()
-    gTTS(text=text, lang=lang_code).save(temp.name)
-    return temp.name
 
 
 def save_single_sentence_heatmaps(results):
@@ -117,6 +113,19 @@ async def live_voice_test(
     finally:
         if os.path.exists(audio_path):
             os.unlink(audio_path)
+
+
+@app.get("/reference/{language}")
+def get_reference(language: str):
+    with open("references/references.json", "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    sentence = random.choice(data["sentences"])
+
+    return {
+        "reference": sentence[language]
+    }
+
 
 @app.post("/evaluate")
 def evaluate(request: EvalRequest):
